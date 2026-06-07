@@ -12,13 +12,69 @@ class SpamDetectionUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Spam Detection Model Trainer")
-        self.root.geometry("1200x800")
+        self.root.geometry("1200x850")
         
+        # Configure dark theme styles using the 'clam' base theme
+        self.root.configure(bg='#0f172a')
+        
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Global background & text
+        style.configure('.', background='#0f172a', foreground='#f8fafc', font=('Segoe UI', 10))
+        
+        # Frame styles
+        style.configure('TFrame', background='#0f172a')
+        style.configure('Card.TFrame', background='#1e293b')
+        
+        # LabelFrames
+        style.configure('TLabelframe', background='#1e293b', bordercolor='#334155', borderwidth=1, relief='flat')
+        style.configure('TLabelframe.Label', background='#1e293b', foreground='#a5b4fc', font=('Segoe UI', 10, 'bold'))
+        
+        # Labels
+        style.configure('TLabel', background='#0f172a', foreground='#f8fafc')
+        style.configure('Card.TLabel', background='#1e293b', foreground='#f8fafc')
+        style.configure('Header.TLabel', background='#0f172a', foreground='#f8fafc', font=('Segoe UI', 20, 'bold'))
+        style.configure('Subheader.TLabel', background='#0f172a', foreground='#94a3b8', font=('Segoe UI', 10))
+        
+        # Radio & Checkbuttons
+        style.configure('TRadiobutton', background='#1e293b', foreground='#cbd5e1', font=('Segoe UI', 10))
+        style.map('TRadiobutton',
+                  background=[('active', '#1e293b'), ('selected', '#1e293b')],
+                  foreground=[('active', '#a5b4fc'), ('selected', '#a5b4fc')])
+        
+        style.configure('TCheckbutton', background='#1e293b', foreground='#cbd5e1', font=('Segoe UI', 10))
+        style.map('TCheckbutton',
+                  background=[('active', '#1e293b'), ('selected', '#1e293b')],
+                  foreground=[('active', '#a5b4fc'), ('selected', '#a5b4fc')])
+        
+        # Notebook (Tabs)
+        style.configure('TNotebook', background='#0f172a', borderwidth=0)
+        style.configure('TNotebook.Tab', background='#1e293b', foreground='#94a3b8', font=('Segoe UI', 10, 'bold'), padding=(15, 8))
+        style.map('TNotebook.Tab',
+                  background=[('selected', '#6366f1'), ('active', '#334155')],
+                  foreground=[('selected', '#ffffff'), ('active', '#f8fafc')])
+        
+        # Entry field
+        style.configure('TEntry', fieldbackground='#0f172a', foreground='#f8fafc', bordercolor='#334155', lightcolor='#334155', darkcolor='#334155', borderwidth=1, insertcolor='#f8fafc')
+        
+        # Progressbar
+        style.configure('Horizontal.TProgressbar', background='#6366f1', troughcolor='#0f172a', bordercolor='#334155')
+        
+        # Scrollbar
+        style.configure('Vertical.TScrollbar', background='#1e293b', troughcolor='#0f172a', bordercolor='#334155', arrowcolor='#a5b4fc')
+        
+        # Buttons
+        style.configure('TButton', background='#6366f1', foreground='#ffffff', font=('Segoe UI', 11, 'bold'), borderwidth=0, padding=(20, 10))
+        style.map('TButton',
+                  background=[('active', '#4f46e5')],
+                  foreground=[('active', '#ffffff')])
+
         # Create tabs
         self.tabControl = ttk.Notebook(root)
-        self.train_tab = ttk.Frame(self.tabControl)
-        self.viz_tab = ttk.Frame(self.tabControl)
-        self.log_tab = ttk.Frame(self.tabControl)
+        self.train_tab = ttk.Frame(self.tabControl, style='TFrame')
+        self.viz_tab = ttk.Frame(self.tabControl, style='TFrame')
+        self.log_tab = ttk.Frame(self.tabControl, style='TFrame')
         self.current_viz = 0
         self.viz_paths = []
         
@@ -35,26 +91,36 @@ class SpamDetectionUI:
         for folder in ['./graphs', './models']:
             if not os.path.exists(folder):
                 os.makedirs(folder)
-    
+                
     def setup_training_tab(self):
-        # Training controls
-        control_frame = ttk.LabelFrame(self.train_tab, text="Training Controls", padding=10)
-        control_frame.pack(fill="x", padx=5, pady=5)
+        # Header container
+        header_frame = ttk.Frame(self.train_tab, style='TFrame')
+        header_frame.pack(fill="x", padx=15, pady=(15, 5))
+        
+        header_title = ttk.Label(header_frame, text="⚙️ Model Training Center", style='Header.TLabel')
+        header_title.pack(anchor="w")
+        
+        header_sub = ttk.Label(header_frame, text="Configure parameters, train classifier models, and monitor training performance.", style='Subheader.TLabel')
+        header_sub.pack(anchor="w", pady=(2, 0))
+
+        # Training controls frame
+        control_frame = ttk.LabelFrame(self.train_tab, text=" TRAINING CONTROLS ", padding=12)
+        control_frame.pack(fill="x", padx=15, pady=10)
         
         # Add model selection
-        model_frame = ttk.Frame(control_frame)
+        model_frame = ttk.Frame(control_frame, style='Card.TFrame')
         model_frame.pack(fill="x", padx=5, pady=5)
         
         self.model_var = tk.StringVar(value="lite")
-        ttk.Radiobutton(model_frame, text="Lite Model", 
-                       value="lite", variable=self.model_var).pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(model_frame, text="Legacy Model", 
-                       value="legacy", variable=self.model_var).pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(model_frame, text="Monarch Butterfly", 
-                       value="mbo", variable=self.model_var).pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(model_frame, text="Lite Model (Fast & Fixed)", 
+                       value="lite", variable=self.model_var).pack(side=tk.LEFT, padx=10, pady=5)
+        ttk.Radiobutton(model_frame, text="Legacy Model (Traditional)", 
+                       value="legacy", variable=self.model_var).pack(side=tk.LEFT, padx=10, pady=5)
+        ttk.Radiobutton(model_frame, text="Monarch Butterfly (MBO Optimized)", 
+                       value="mbo", variable=self.model_var).pack(side=tk.LEFT, padx=10, pady=5)
         
-                # Add MBO parameters frame
-        self.mbo_frame = ttk.LabelFrame(control_frame, text="MBO Parameters", padding=10)
+        # Add MBO parameters frame
+        self.mbo_frame = ttk.LabelFrame(control_frame, text=" MBO OPTIMIZATION PARAMETERS ", padding=12)
         
         # MBO parameter entries
         params = {
@@ -67,12 +133,12 @@ class SpamDetectionUI:
         self.mbo_params = {}
         
         for param, (default, min_val, max_val) in params.items():
-            frame = ttk.Frame(self.mbo_frame)
-            frame.pack(fill='x', padx=5, pady=2)
+            frame = ttk.Frame(self.mbo_frame, style='Card.TFrame')
+            frame.pack(fill='x', padx=5, pady=4)
             
-            ttk.Label(frame, text=f"{param}:").pack(side=tk.LEFT)
+            ttk.Label(frame, text=f"{param}:", style='Card.TLabel', width=18, anchor="w").pack(side=tk.LEFT)
             var = tk.StringVar(value=str(default))
-            entry = ttk.Entry(frame, textvariable=var, width=10)
+            entry = ttk.Entry(frame, textvariable=var, width=12, style='TEntry')
             entry.pack(side=tk.LEFT, padx=5)
             
             self.mbo_params[param] = {
@@ -85,43 +151,59 @@ class SpamDetectionUI:
         self.use_gpu = tk.BooleanVar(value=cuda_available())
         self.gpu_check = ttk.Checkbutton(
             self.mbo_frame, 
-            text="Use GPU (if available)", 
+            text="Use PyTorch CUDA GPU Acceleration (if available)", 
             variable=self.use_gpu,
+            style='TCheckbutton',
             state='normal' if cuda_available() else 'disabled'
         )
-        self.gpu_check.pack(pady=5)
+        self.gpu_check.pack(pady=8, anchor="w", padx=5)
         
         # Show/hide MBO parameters based on model selection
         def on_model_change(*args):
             if self.model_var.get() == "mbo":
-                self.mbo_frame.pack(fill="x", padx=5, pady=5, after=model_frame)
+                self.mbo_frame.pack(fill="x", padx=5, pady=10, after=model_frame)
             else:
                 self.mbo_frame.pack_forget()
                 
         self.model_var.trace_add('write', on_model_change)
         
         # Metrics display
-        self.metrics_frame = ttk.LabelFrame(self.train_tab, text="Model Metrics", padding=10)
-        self.metrics_frame.pack(fill="x", padx=5, pady=5)
+        self.metrics_frame = ttk.LabelFrame(self.train_tab, text=" MODEL METRICS ", padding=12)
+        self.metrics_frame.pack(fill="x", padx=15, pady=10)
         
-        self.metrics_text = scrolledtext.ScrolledText(self.metrics_frame, height=5)
+        self.metrics_text = scrolledtext.ScrolledText(
+            self.metrics_frame, 
+            height=4,
+            bg='#0f172a',
+            fg='#f8fafc',
+            insertbackground='#f8fafc',
+            relief='flat',
+            borderwidth=0,
+            font=('Segoe UI', 11),
+            padx=10,
+            pady=10
+        )
         self.metrics_text.pack(fill="both", expand=True)
         
-        self.train_button = ttk.Button(control_frame, text="Train Model", command=self.start_training)
-        self.train_button.pack(pady=5)
+        # Training action frame
+        action_frame = ttk.Frame(control_frame, style='Card.TFrame')
+        action_frame.pack(fill="x", pady=10)
         
-        self.progress = ttk.Progressbar(control_frame, length=400, mode='indeterminate')
-        self.progress.pack(pady=5)
+        self.train_button = ttk.Button(action_frame, text="Start Training Run", command=self.start_training)
+        self.train_button.pack(anchor="center", pady=5)
+        
+        self.progress = ttk.Progressbar(action_frame, length=500, mode='indeterminate', style='Horizontal.TProgressbar')
+        self.progress.pack(anchor="center", pady=5)
         
     def setup_visualization_tab(self):
         # Main frame with scrollbar
-        main_frame = ttk.Frame(self.viz_tab)
+        main_frame = ttk.Frame(self.viz_tab, style='TFrame')
         main_frame.pack(fill="both", expand=True)
         
         # Add canvas with scrollbar
-        self.viz_canvas = tk.Canvas(main_frame)
-        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=self.viz_canvas.yview)
-        self.viz_frame = ttk.Frame(self.viz_canvas)
+        self.viz_canvas = tk.Canvas(main_frame, bg='#0f172a', highlightthickness=0)
+        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=self.viz_canvas.yview, style='Vertical.TScrollbar')
+        self.viz_frame = ttk.Frame(self.viz_canvas, style='TFrame')
         
         self.viz_canvas.configure(yscrollcommand=scrollbar.set)
         
@@ -136,13 +218,13 @@ class SpamDetectionUI:
         self.viz_canvas.bind("<Configure>", self.on_canvas_configure)
         
         # Image frames
-        self.insights_frame = ttk.LabelFrame(self.viz_frame, text="Dataset Insights")
-        self.wordcloud_frame = ttk.LabelFrame(self.viz_frame, text="Word Clouds")
-        self.metrics_frame = ttk.LabelFrame(self.viz_frame, text="Performance Metrics")
+        self.insights_frame = ttk.LabelFrame(self.viz_frame, text=" DATASET INSIGHTS ", padding=12)
+        self.wordcloud_frame = ttk.LabelFrame(self.viz_frame, text=" WORD CLOUDS ", padding=12)
+        self.metrics_frame = ttk.LabelFrame(self.viz_frame, text=" PERFORMANCE METRICS ", padding=12)
         
-        self.insights_frame.pack(fill="x", padx=5, pady=5)
-        self.wordcloud_frame.pack(fill="x", padx=5, pady=5)
-        self.metrics_frame.pack(fill="x", padx=5, pady=5)
+        self.insights_frame.pack(fill="x", padx=15, pady=10)
+        self.wordcloud_frame.pack(fill="x", padx=15, pady=10)
+        self.metrics_frame.pack(fill="x", padx=15, pady=10)
 
     def on_frame_configure(self, event=None):
         self.viz_canvas.configure(scrollregion=self.viz_canvas.bbox("all"))
@@ -174,7 +256,17 @@ class SpamDetectionUI:
         self.next_button["state"] = "normal" if self.current_viz < len(self.viz_paths) - 1 else "disabled"
         
     def setup_log_tab(self):
-        self.log_text = scrolledtext.ScrolledText(self.log_tab)
+        self.log_text = scrolledtext.ScrolledText(
+            self.log_tab,
+            bg='#0f172a',
+            fg='#f8fafc',
+            insertbackground='#f8fafc',
+            relief='flat',
+            borderwidth=0,
+            font=('Consolas', 10),
+            padx=15,
+            pady=15
+        )
         self.log_text.pack(fill="both", expand=True)
     
     def start_training(self):

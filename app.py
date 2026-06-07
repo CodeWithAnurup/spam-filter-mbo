@@ -27,33 +27,103 @@ class SpamClassifierUI:
         self.setup_ui()
         
     def setup_ui(self):
-        # Model selection
-        model_frame = ttk.LabelFrame(self.root, text="Model Selection", padding=10)
-        model_frame.pack(fill="x", padx=10, pady=5)
+        # Configure dark theme styles using the 'clam' base theme
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Global background & text
+        style.configure('.', background='#0f172a', foreground='#f8fafc', font=('Segoe UI', 10))
+        
+        # Frame
+        style.configure('TFrame', background='#0f172a')
+        
+        # LabelFrames
+        style.configure('TLabelframe', background='#1e293b', bordercolor='#334155', borderwidth=1, relief='flat')
+        style.configure('TLabelframe.Label', background='#1e293b', foreground='#a5b4fc', font=('Segoe UI', 10, 'bold'))
+        
+        # Labels
+        style.configure('TLabel', background='#0f172a', foreground='#f8fafc')
+        style.configure('Card.TLabel', background='#1e293b', foreground='#f8fafc')
+        style.configure('Header.TLabel', background='#0f172a', foreground='#f8fafc', font=('Segoe UI', 20, 'bold'))
+        style.configure('Subheader.TLabel', background='#0f172a', foreground='#94a3b8', font=('Segoe UI', 10))
+        
+        # Radio buttons
+        style.configure('TRadiobutton', background='#1e293b', foreground='#cbd5e1', font=('Segoe UI', 10))
+        style.map('TRadiobutton',
+                  background=[('active', '#1e293b'), ('selected', '#1e293b')],
+                  foreground=[('active', '#a5b4fc'), ('selected', '#a5b4fc')])
+        
+        # Buttons
+        style.configure('TButton', background='#6366f1', foreground='#ffffff', font=('Segoe UI', 11, 'bold'), borderwidth=0, padding=(20, 10))
+        style.map('TButton',
+                  background=[('active', '#4f46e5')],
+                  foreground=[('active', '#ffffff')])
+
+        # Apply dark background to root window
+        self.root.configure(bg='#0f172a')
+        
+        # Header container
+        header_frame = ttk.Frame(self.root, style='TFrame')
+        header_frame.pack(fill="x", padx=20, pady=(20, 10))
+        
+        header_title = ttk.Label(header_frame, text="✉️ Spam Detection System", style='Header.TLabel')
+        header_title.pack(anchor="w")
+        
+        header_sub = ttk.Label(header_frame, text="Classify messages instantly using optimized MBO or legacy ensemble models.", style='Subheader.TLabel')
+        header_sub.pack(anchor="w", pady=(2, 0))
+        
+        # Model selection frame
+        model_frame = ttk.LabelFrame(self.root, text=" MODEL SELECTION ", padding=12)
+        model_frame.pack(fill="x", padx=20, pady=10)
         
         self.model_var = tk.StringVar(value="optimized")
-        ttk.Radiobutton(model_frame, text="Optimized Model", 
-                       value="optimized", variable=self.model_var).pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(model_frame, text="Legacy Model", 
-                       value="legacy", variable=self.model_var).pack(side=tk.LEFT, padx=5)
         
-        # Input area
-        input_frame = ttk.LabelFrame(self.root, text="Enter Message", padding=10)
-        input_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        opt_radio = ttk.Radiobutton(model_frame, text="Optimized Model (MBO/Lite Preprocessing)", 
+                       value="optimized", variable=self.model_var)
+        opt_radio.pack(side=tk.LEFT, padx=15, pady=5)
         
-        self.input_text = scrolledtext.ScrolledText(input_frame, height=10)
+        legacy_radio = ttk.Radiobutton(model_frame, text="Legacy Model (Traditional Preprocessing)", 
+                       value="legacy", variable=self.model_var)
+        legacy_radio.pack(side=tk.LEFT, padx=15, pady=5)
+        
+        # Input area frame
+        input_frame = ttk.LabelFrame(self.root, text=" ENTER MESSAGE TO CLASSIFY ", padding=12)
+        input_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        # Custom-styled Text widget to match dark mode
+        self.input_text = scrolledtext.ScrolledText(
+            input_frame, 
+            height=8,
+            bg='#0f172a',
+            fg='#f8fafc',
+            insertbackground='#f8fafc',
+            relief='flat',
+            borderwidth=0,
+            font=('Segoe UI', 11),
+            padx=10,
+            pady=10
+        )
         self.input_text.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Predict button
-        self.predict_btn = ttk.Button(self.root, text="Predict", command=self.predict)
-        self.predict_btn.pack(pady=10)
+        # Predict button frame
+        btn_frame = ttk.Frame(self.root, style='TFrame')
+        btn_frame.pack(fill="x", padx=20, pady=10)
         
-        # Result display
-        result_frame = ttk.LabelFrame(self.root, text="Prediction Result", padding=10)
-        result_frame.pack(fill="x", padx=10, pady=5)
+        self.predict_btn = ttk.Button(btn_frame, text="Run Classification", command=self.predict)
+        self.predict_btn.pack(anchor="center")
         
-        self.result_label = ttk.Label(result_frame, text="", font=("Arial", 14, "bold"))
-        self.result_label.pack(pady=10)
+        # Result display frame
+        result_frame = ttk.LabelFrame(self.root, text=" PREDICTION RESULT ", padding=12)
+        result_frame.pack(fill="x", padx=20, pady=(10, 20))
+        
+        self.result_label = ttk.Label(
+            result_frame, 
+            text="Waiting for input...", 
+            font=("Segoe UI", 14, "bold"),
+            style='Card.TLabel',
+            anchor="center"
+        )
+        self.result_label.pack(fill="x", pady=10)
         
     def transform_text_legacy(self, text):
         ps = PorterStemmer()
@@ -109,8 +179,8 @@ class SpamClassifierUI:
                 vector = self.legacy_tfidf.transform([transformed_text]).toarray()
                 prediction = self.legacy_model.predict(vector)[0]
                 
-            result = "SPAM" if prediction == 1 else "NOT SPAM"
-            color = "#ff4444" if prediction == 1 else "#44ff44"
+            result = "🚨 SPAM DETECTED" if prediction == 1 else "✅ NOT SPAM (CLEAN MESSAGE)"
+            color = "#f43f5e" if prediction == 1 else "#10b981"
             self.result_label.config(text=result, foreground=color)
             
         except Exception as e:
