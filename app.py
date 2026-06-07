@@ -106,7 +106,7 @@ class SpamClassifierUI:
                 prediction = self.optimized_model.predict(vector)[0]
             else:
                 transformed_text = self.transform_text_legacy(text)
-                vector = self.legacy_tfidf.transform([transformed_text])
+                vector = self.legacy_tfidf.transform([transformed_text]).toarray()
                 prediction = self.legacy_model.predict(vector)[0]
                 
             result = "SPAM" if prediction == 1 else "NOT SPAM"
