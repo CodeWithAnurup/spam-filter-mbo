@@ -195,7 +195,23 @@ class SpamClassifierUI:
                 
             result = "🚨 SPAM DETECTED" if prediction == 1 else "✅ NOT SPAM (CLEAN MESSAGE)"
             color = "#f43f5e" if prediction == 1 else "#10b981"
-            self.result_label.config(text=result, foreground=color)
+            
+            # Cancel any active blink animation
+            if hasattr(self, 'blink_id') and self.blink_id:
+                try:
+                    self.root.after_cancel(self.blink_id)
+                except Exception:
+                    pass
+                self.blink_id = None
+                
+            # Perform a one-time flash/blink animation (flash white, then restore color)
+            self.result_label.config(text=result, foreground='#ffffff')
+            
+            def restore_color(target_color=color):
+                self.result_label.config(foreground=target_color)
+                self.blink_id = None
+                
+            self.blink_id = self.root.after(200, restore_color)
             
         except Exception as e:
             messagebox.showerror("Error", f"Prediction failed: {str(e)}")
