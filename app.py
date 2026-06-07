@@ -77,6 +77,7 @@ class SpamClassifierUI:
         model_frame.pack(fill="x", padx=20, pady=10)
         
         self.model_var = tk.StringVar(value="optimized")
+        self.model_var.trace_add('write', self.on_model_change)
         
         opt_radio = ttk.Radiobutton(model_frame, text="Optimized Model (MBO/Lite Preprocessing)", 
                        value="optimized", variable=self.model_var)
@@ -104,6 +105,8 @@ class SpamClassifierUI:
             pady=10
         )
         self.input_text.pack(fill="both", expand=True, padx=5, pady=5)
+        self.input_text.bind("<KeyRelease>", self.on_key_release)
+        self.last_text = ""
         
         # Predict button frame
         btn_frame = ttk.Frame(self.root, style='TFrame')
@@ -162,6 +165,17 @@ class SpamClassifierUI:
         
         return " ".join(words)
     
+    def on_model_change(self, *args):
+        text = self.input_text.get("1.0", tk.END).strip()
+        if text:
+            self.predict()
+
+    def on_key_release(self, event=None):
+        current_text = self.input_text.get("1.0", tk.END).strip()
+        if getattr(self, 'last_text', '') != current_text:
+            self.last_text = current_text
+            self.result_label.config(text="Waiting for input...", foreground='#64748b')
+
     def predict(self):
         text = self.input_text.get("1.0", tk.END).strip()
         
